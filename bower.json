@@ -1,9 +1,9 @@
 {
     "name": "hotbox",
     "title": "Hot Box UI",
-    "description": "Efficiency And Flexible Editor UI",
+    "description": "Mobile Of Graphic",
     "version": "0.1.0",
-    "homepage": "https://github.com/fex-team/hotbox",
+    "homepage": "Efficiency And Flexible Editor UI",
     "author": {
         "name": "Baidu FEX",
         "url": "https://github.com/fex-team"
@@ -23,17 +23,25 @@
     "bugs": {
         "url": "https://github.com/fex-team/hotbox/issues"
     },
-    "main": "src/mog.js",
     "licenses": [{
         "type": "BSD",
         "url": "https://github.com/fex-team/hotbox/blob/dev/LICENSE"
     }],
-    "dependencies": {},
-    "devDependencies": {
-        "less": "2.1.1",
-        "watch": "0.13.0"
+    "dependencies": {
+        "seajs": "2.3.0"
     },
-    "scripts": {
-        "watch-less": "watch \"lessc --source-map less/hotbox.less dist/hotbox.css\" \"less\""
-    }
+    "ignore": [
+        "**/.*",
+        "docs",
+        "lib",
+        "src",
+        "tests",
+        "CNAME",
+        "component.json",
+        "CONTRIBUTING.md",
+        "index.html",
+        "Makefile",
+        "package.json",
+        "README.md"
+    ]
 }
