@@ -1,39 +1,49 @@
 {
-    "name": "hotbox",
-    "title": "Hot Box UI",
-    "description": "Efficiency And Flexible Editor UI",
-    "version": "0.1.0",
-    "homepage": "https://github.com/fex-team/hotbox",
-    "author": {
-        "name": "Baidu FEX",
-        "url": "https://github.com/fex-team"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/fex-team/hotbox.git"
-    },
-    "keywords": [
-        "ui",
-        "hotbox",
-        "efficiency",
-        "flexible",
-        "javascript",
-        "library"
-    ],
-    "bugs": {
-        "url": "https://github.com/fex-team/hotbox/issues"
-    },
-    "main": "src/mog.js",
-    "licenses": [{
-        "type": "BSD",
-        "url": "https://github.com/fex-team/hotbox/blob/dev/LICENSE"
-    }],
-    "dependencies": {},
-    "devDependencies": {
-        "less": "2.1.1",
-        "watch": "0.13.0"
-    },
-    "scripts": {
-        "watch-less": "watch \"lessc --source-map less/hotbox.less dist/hotbox.css\" \"less\""
+  "name": "hotbox",
+  "title": "Hot Box UI",
+  "description": "Efficiency And Flexible Editor UI",
+  "version": "0.1.0",
+  "homepage": "https://github.com/fex-team/hotbox",
+  "author": {
+    "name": "Baidu FEX",
+    "url": "https://github.com/fex-team"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fex-team/hotbox.git"
+  },
+  "keywords": [
+    "ui",
+    "hotbox",
+    "efficiency",
+    "flexible",
+    "javascript",
+    "library"
+  ],
+  "bugs": {
+    "url": "https://github.com/fex-team/hotbox/issues"
+  },
+  "main": "src/mog.js",
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "https://github.com/fex-team/hotbox/blob/dev/LICENSE"
     }
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-autoprefixer": "^2.0.0",
+    "grunt-contrib-concat": "^0.5.0",
+    "grunt-contrib-less": "^0.12.0",
+    "grunt-contrib-uglify": "~0.4.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-module-dependence": "~0.2.0",
+    "grunt-replace": "^0.8.0",
+    "less": "~2.1.1",
+    "watch": "~0.13.0"
+  },
+  "scripts": {
+    "watch-less": "watch \"lessc --source-map less/hotbox.less hotbox.css\" \"less\""
+  }
 }

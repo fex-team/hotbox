@@ -1,47 +1,10 @@
 {
     "name": "hotbox",
-    "title": "Hot Box UI",
-    "description": "Mobile Of Graphic",
     "version": "0.1.0",
-    "homepage": "Efficiency And Flexible Editor UI",
-    "author": {
-        "name": "Baidu FEX",
-        "url": "https://github.com/fex-team"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/fex-team/hotbox.git"
-    },
-    "keywords": [
-        "ui",
-        "hotbox",
-        "efficiency",
-        "flexible",
-        "javascript",
-        "library"
-    ],
-    "bugs": {
-        "url": "https://github.com/fex-team/hotbox/issues"
-    },
-    "licenses": [{
-        "type": "BSD",
-        "url": "https://github.com/fex-team/hotbox/blob/dev/LICENSE"
-    }],
-    "dependencies": {
-        "seajs": "2.3.0"
-    },
+    "main": "dist/hotbox.js",
     "ignore": [
-        "**/.*",
-        "docs",
-        "lib",
-        "src",
-        "tests",
-        "CNAME",
-        "component.json",
-        "CONTRIBUTING.md",
-        "index.html",
-        "Makefile",
-        "package.json",
-        "README.md"
+        "bower_components",
+        "node_modules",
+        "lib"
     ]
 }
