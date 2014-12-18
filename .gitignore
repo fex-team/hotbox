@@ -1,2 +1,5 @@
 bower_components/
 dist/
+hotbox.css
+hotbox.js
+hotbox.min.js
