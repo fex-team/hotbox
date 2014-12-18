@@ -1,10 +1,7 @@
 {
     "name": "hotbox",
-    "version": "0.1.0",
-    "main": "dist/hotbox.js",
-    "ignore": [
-        "bower_components",
-        "node_modules",
-        "lib"
-    ]
+    "version": "1.0.0",
+    "main": "hotbox.min.js",
+    "keywords": ["hotbox", "html5", "javascript", "ui"],
+    "ignore": [".gitignore", ".jscsrc", ".jshintrc", "Gruntfile.js", "package.json"]
 }
