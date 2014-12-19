@@ -335,6 +335,7 @@ define('hotbox', function(require, exports, module) {
                 key: option.key,
                 next: option.next,
                 label: option.label,
+                data: option.data || null,
                 $button: $button
             };
         }
@@ -478,7 +479,7 @@ define('hotbox', function(require, exports, module) {
         function execute(button) {
             if (button) {
                 if (!button.enable || button.enable()) {
-                    if (button.action) button.action();
+                    if (button.action) button.action(button);
                     hotBox.active(button.next || IDLE);
                 }
                 press(null);
