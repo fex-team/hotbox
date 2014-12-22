@@ -1,4 +1,4 @@
-define('hotbox', function(require, exports, module) {
+define(function(require, exports, module) {
     var key = require('./key');
     var KeyControl = require('./keycontrol');
 
