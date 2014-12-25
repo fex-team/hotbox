@@ -1,7 +1,21 @@
 {
-    "name": "hotbox",
-    "version": "1.0.0",
-    "main": "hotbox.min.js",
-    "keywords": ["hotbox", "html5", "javascript", "ui"],
-    "ignore": [".gitignore", ".jscsrc", ".jshintrc", "Gruntfile.js", "package.json"]
+  "name": "hotbox",
+  "version": "1.0.0",
+  "main": "hotbox.min.js",
+  "keywords": [
+    "hotbox",
+    "html5",
+    "javascript",
+    "ui"
+  ],
+  "ignore": [
+    ".gitignore",
+    ".jscsrc",
+    ".jshintrc",
+    "Gruntfile.js",
+    "package.json"
+  ],
+  "dependencies": {
+    "seajs": "~2.3.0"
+  }
 }

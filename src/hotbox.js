@@ -66,10 +66,10 @@ define(function(require, exports, module) {
         var _stateStack = [];
         var _this = this;
 
-        control();
+        this.control = control;
 
-        function control() {
-            var keyControl = new KeyControl($container);
+        function control($receiver) {
+            var keyControl = new KeyControl($container, $receiver);
 
             $container.onmousedown = function(e) {
                 keyControl.active();

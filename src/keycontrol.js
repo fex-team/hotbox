@@ -4,24 +4,33 @@ define(function(require, exports, module) {
     var FOCUS_CLASS = 'hotbox-focus';
     var RECEIVER_CLASS = 'hotbox-key-receiver';
 
-    function KeyControl($container) {
+    function KeyControl($container, $receiver) {
         var _actived = true;
-        var _receiver = null;
+        var _receiver = $receiver;
+        var _receiverIsSelfCreated = false;
         var _this = this;
 
-        _createReceiver();
+        if (!_receiver) _createReceiver();
+
+        _bindReceiver();
+        _active();
 
         function _createReceiver() {
             _receiver = document.createElement('input');
             _receiver.classList.add(RECEIVER_CLASS);
+            $container.appendChild(_receiver);
+            _receiverIsSelfCreated = true;
+        }
+
+        function _bindReceiver() {
             _receiver.onkeyup = _handle;
             _receiver.onkeypress = _handle;
             _receiver.onkeydown = _handle;
             _receiver.onfocus = _active;
             _receiver.onblur = _deactive;
-            _receiver.oninput = function(e) { _receiver.value = null; };
-            $container.appendChild(_receiver);
-            _active();
+            if (_receiverIsSelfCreated) {
+                _receiver.oninput = function(e) { _receiver.value = null; };
+            }
         }
 
         function _handle(keyEvent) {
@@ -53,6 +62,7 @@ define(function(require, exports, module) {
             $container.classList.remove(FOCUS_CLASS);
         }
 
+        this.handle = _handle;
         this.active = _active;
         this.deactive = _deactive;
     }
