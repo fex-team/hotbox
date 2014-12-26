@@ -108,9 +108,15 @@ define(function(require, exports, module) {
                 }
                 var handleState = _currentState == IDLE ? _mainState : _currentState;
                 if (handleState) {
-                    handleState.handleKeyEvent(e);
+                    var handleResult = handleState.handleKeyEvent(e);
+                    if (typeof(_this.onkeyevent) == 'function') {
+                        e.handleResult = handleResult;
+                        _this.onkeyevent(e, handleResult);
+                    }
                 }
             };
+
+            return _this;
         }
 
         function _addState(name) {
@@ -154,6 +160,9 @@ define(function(require, exports, module) {
                 }
                 var newState = _states[name];
                 _stateStack.unshift(newState);
+                if (typeof(_this.position) == 'function') {
+                    position = _this.position(position);
+                }
                 newState.active(position);
                 _currentState = newState;
             }
@@ -426,6 +435,7 @@ define(function(require, exports, module) {
         };
 
         this.handleKeyEvent = function(e) {
+            var handleResult = null;
             if (e.keydown) {
                 allButtons.forEach(function(button) {
                     if (e.isKey(button.key)) {
@@ -436,6 +446,7 @@ define(function(require, exports, module) {
                         if (!stateActived && hotBox.hintDeactiveMainState) {
                             hotBox.active(stateName);
                         }
+                        handleResult = 'buttonpress';
                     }
                 });
                 if (e.isKey('esc')) {
@@ -446,23 +457,28 @@ define(function(require, exports, module) {
                     } else {
                         hotBox.active('back');
                     }
-                    return;
+                    return 'back';
                 }
-                ['up', 'down', 'left', 'right'].forEach(function(dir) {
-                    if (!e.isKey(dir)) return;
-                    if (!selectedButton) {
-                        select(buttons.center || buttons.ring[0] || buttons.top[0] || buttons.bottom[0]);
-                        return;
-                    }
-                    var neighbor = selectedButton.neighbor[dir];
-                    if (neighbor) {
-                        select(neighbor);
-                    }
-                });
+                if (stateActived) {
+                    ['up', 'down', 'left', 'right'].forEach(function(dir) {
+                        if (!e.isKey(dir)) return;
+                        if (!selectedButton) {
+                            select(buttons.center || buttons.ring[0] || buttons.top[0] || buttons.bottom[0]);
+                            return;
+                        }
+                        var neighbor = selectedButton.neighbor[dir];
+                        if (neighbor) {
+                            select(neighbor);
+                        }
+                        handleResult = 'navigate';
+                    });
+                }
                 if (e.isKey('space') && selectedButton) {
                     press(selectedButton);
+                    handleResult = 'buttonpress';
                 } else if (pressedButton && pressedButton != selectedButton) {
                     press(null);
+                    handleResult = 'selectcancel';
                 }
             }
             else if (e.keyup) {
@@ -471,9 +487,11 @@ define(function(require, exports, module) {
                         execute(pressedButton);
                         e.preventDefault();
                         e.stopPropagation();
+                        handleResult = 'execute';
                     }
                 }
             }
+            return handleResult;
         };
 
         function execute(button) {
