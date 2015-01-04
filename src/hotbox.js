@@ -65,14 +65,20 @@ define(function(require, exports, module) {
         var _currentState = IDLE;
         var _stateStack = [];
         var _this = this;
+        var _control;
 
         this.control = control;
 
         function control($receiver) {
-            var keyControl = new KeyControl($container, $receiver);
+            if (_control) {
+                _control.active();
+                return;
+            }
+
+            _control = new KeyControl($container, $receiver);
 
             $container.onmousedown = function(e) {
-                keyControl.active();
+                _control.active();
                 e.preventDefault();
                 if (_currentState != IDLE) {
                     _activeState(IDLE);
@@ -97,7 +103,7 @@ define(function(require, exports, module) {
                 }
             };
 
-            keyControl.onkeydown = keyControl.onkeyup = function(e) {
+            _control.onkeydown = _control.onkeyup = function(e) {
                 // Boot: keyup and activeKey pressed on IDLE, active main state.
                 if (e.keydown && _this.activeKey && e.isKey(_this.activeKey) && _currentState == IDLE && _mainState) {
                     _activeState('main', {
@@ -351,7 +357,10 @@ define(function(require, exports, module) {
 
         // 默认按钮渲染
         function defaultButtonRender(format, option) {
-            return format('<span class="label">{label}</span><span class="key">{key}</span>', option);
+            return format('<span class="label">{label}</span><span class="key">{key}</span>', {
+                label: option.label,
+                key: option.key && option.key.split('|')[0]
+            });
         }
 
         // 为当前状态添加按钮
@@ -439,27 +448,32 @@ define(function(require, exports, module) {
             if (e.keydown) {
                 allButtons.forEach(function(button) {
                     if (e.isKey(button.key)) {
-                        select(button);
-                        press(button);
+                        if (stateActived) {
+                            select(button);
+                            press(button);
+                            handleResult = 'buttonpress';
+                        } else {
+                            execute(button);
+                            handleResult = 'execute';
+                        }
                         e.preventDefault();
                         e.stopPropagation();
                         if (!stateActived && hotBox.hintDeactiveMainState) {
                             hotBox.active(stateName);
                         }
-                        handleResult = 'buttonpress';
                     }
                 });
-                if (e.isKey('esc')) {
-                    if (pressedButton) {
-                        if (!e.isKey(pressedButton.key)) { // the button is not esc
-                            press(null);
-                        }
-                    } else {
-                        hotBox.active('back');
-                    }
-                    return 'back';
-                }
                 if (stateActived) {
+                    if (e.isKey('esc')) {
+                        if (pressedButton) {
+                            if (!e.isKey(pressedButton.key)) { // the button is not esc
+                                press(null);
+                            }
+                        } else {
+                            hotBox.active('back');
+                        }
+                        return 'back';
+                    }
                     ['up', 'down', 'left', 'right'].forEach(function(dir) {
                         if (!e.isKey(dir)) return;
                         if (!selectedButton) {
@@ -472,16 +486,17 @@ define(function(require, exports, module) {
                         }
                         handleResult = 'navigate';
                     });
-                }
-                if (e.isKey('space') && selectedButton) {
-                    press(selectedButton);
-                    handleResult = 'buttonpress';
-                } else if (pressedButton && pressedButton != selectedButton) {
-                    press(null);
-                    handleResult = 'selectcancel';
+
+                    if (e.isKey('space') && selectedButton) {
+                        press(selectedButton);
+                        handleResult = 'buttonpress';
+                    } else if (pressedButton && pressedButton != selectedButton) {
+                        press(null);
+                        handleResult = 'selectcancel';
+                    }
                 }
             }
-            else if (e.keyup) {
+            else if (e.keyup && stateActived) {
                 if (pressedButton) {
                     if (e.isKey('space') && selectedButton == pressedButton || e.isKey(pressedButton.key)) {
                         execute(pressedButton);

@@ -42,7 +42,12 @@ define(function(require, exports, module) {
             if (handler) {
                 keyEvent.keyHash = key.hash(keyEvent);
                 keyEvent.isKey = function(keyExpression) {
-                    return keyEvent.keyHash == key.hash(keyExpression);
+                    if (!keyExpression) return false;
+                    var expressions = keyExpression.split(/\s*\|\s*/);
+                    while(expressions.length) {
+                        if (keyEvent.keyHash == key.hash(expressions.shift())) return true;
+                    }
+                    return false;
                 };
                 keyEvent[type] = true;
                 handler(keyEvent);
