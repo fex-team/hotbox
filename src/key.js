@@ -11,7 +11,12 @@ define(function(require, exports, module) {
         }
         return hashKeyEvent(unknown);
     }
+    function is(a, b) {
+        return a && b && hash(a) == hash(b);
+    }
     exports.hash = hash;
+    exports.is = is;
+
 
     function hashKeyEvent(keyEvent) {
         var hashCode = 0;

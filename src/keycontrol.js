@@ -4,15 +4,16 @@ define(function(require, exports, module) {
     var FOCUS_CLASS = 'hotbox-focus';
     var RECEIVER_CLASS = 'hotbox-key-receiver';
 
-    function KeyControl($container, $receiver) {
-        var _actived = true;
-        var _receiver = $receiver;
-        var _receiverIsSelfCreated = false;
+    function KeyControl(hotbox) {
         var _this = this;
+        var _receiver;
+        var _actived = true;
+        var _receiverIsSelfCreated = false;
+        var $container = hotbox.$container;
 
-        if (!_receiver) _createReceiver();
-
+        _createReceiver();
         _bindReceiver();
+        _bindContainer();
         _active();
 
         function _createReceiver() {
@@ -33,25 +34,16 @@ define(function(require, exports, module) {
             }
         }
 
+        function _bindContainer() {
+            $container.onmousedown = function(e) {
+                _active();
+                e.preventDefault();
+            };
+        }
+
         function _handle(keyEvent) {
             if (!_actived) return;
-
-            var type = keyEvent.type.toLowerCase();
-            var handler = _this['on' + type];
-
-            if (handler) {
-                keyEvent.keyHash = key.hash(keyEvent);
-                keyEvent.isKey = function(keyExpression) {
-                    if (!keyExpression) return false;
-                    var expressions = keyExpression.split(/\s*\|\s*/);
-                    while(expressions.length) {
-                        if (keyEvent.keyHash == key.hash(expressions.shift())) return true;
-                    }
-                    return false;
-                };
-                keyEvent[type] = true;
-                handler(keyEvent);
-            }
+            hotbox.dispatch(keyEvent);
         }
 
         function _active() {

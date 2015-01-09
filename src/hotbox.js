@@ -3,29 +3,29 @@ define(function(require, exports, module) {
     var KeyControl = require('./keycontrol');
 
     /**** Dom Utils ****/
-        function createElement(name) {
-            return document.createElement(name);
-        }
+    function createElement(name) {
+        return document.createElement(name);
+    }
 
-        function setElementAttribute(element, name, value) {
-            element.setAttribute(name, value);
-        }
+    function setElementAttribute(element, name, value) {
+        element.setAttribute(name, value);
+    }
 
-        function getElementAttribute(element, name) {
-            return element.getAttribute(name);
-        }
+    function getElementAttribute(element, name) {
+        return element.getAttribute(name);
+    }
 
-        function addElementClass(element, name) {
-            element.classList.add(name);
-        }
+    function addElementClass(element, name) {
+        element.classList.add(name);
+    }
 
-        function removeElementClass(element, name) {
-            element.classList.remove(name);
-        }
+    function removeElementClass(element, name) {
+        element.classList.remove(name);
+    }
 
-        function appendChild(parent, child) {
-            parent.appendChild(child);
-        }
+    function appendChild(parent, child) {
+        parent.appendChild(child);
+    }
     /*******************/
 
     var IDLE = 'idle';
@@ -53,76 +53,85 @@ define(function(require, exports, module) {
         if (!$container || !($container instanceof HTMLElement)) {
             throw new Error('No container or not invalid container for hot box');
         }
+
+        // 创建 HotBox Dom 解构
         var $hotBox = createElement(div);
         addElementClass($hotBox, 'hotbox');
         appendChild($container, $hotBox);
 
+        // 保存 Dom 解构和父容器
         this.$element = $hotBox;
         this.$container = $container;
 
+        // 已定义的状态（string => HotBoxState）
         var _states = {};
+
+        // 主状态（HotBoxState）
         var _mainState = null;
+
+        // 当前状态（HotBoxState）
         var _currentState = IDLE;
+
+        // 当前状态堆栈
         var _stateStack = [];
+
+        // 实例引用
         var _this = this;
-        var _control;
+        var _controler;
 
-        this.control = control;
-
-        function control($receiver) {
-            if (_control) {
-                _control.active();
+        /**
+         * Controller: {
+         *     constructor(hotbox: HotBox),
+         *     active: () => void
+         * }
+         */
+        function _control(Controller) {
+            if (_controler) {
+                _controler.active();
                 return;
             }
 
-            _control = new KeyControl($container, $receiver);
+            Controller = Controller || KeyControl;
 
-            $container.onmousedown = function(e) {
-                _control.active();
-                e.preventDefault();
-                if (_currentState != IDLE) {
-                    _activeState(IDLE);
-                }
-            };
+            _controler = new Controller(_this);
+            _controler.active();
 
             $hotBox.onmousedown = function(e) {
                 e.stopPropagation();
                 e.preventDefault();
             };
 
-            $container.oncontextmenu = function(e) {
-                if (_this.openOnContextMenu) {
-                    e.preventDefault();
-                    if (_currentState == IDLE) {
-                        _activeState('main', {
-                            x: e.offsetX,
-                            y: e.offsetY
-                        });
-                        console.log(e);
-                    }
-                }
-            };
-
-            _control.onkeydown = _control.onkeyup = function(e) {
-                // Boot: keyup and activeKey pressed on IDLE, active main state.
-                if (e.keydown && _this.activeKey && e.isKey(_this.activeKey) && _currentState == IDLE && _mainState) {
-                    _activeState('main', {
-                        x: $container.clientWidth / 2,
-                        y: $container.clientHeight / 2
-                    });
-                    return;
-                }
-                var handleState = _currentState == IDLE ? _mainState : _currentState;
-                if (handleState) {
-                    var handleResult = handleState.handleKeyEvent(e);
-                    if (typeof(_this.onkeyevent) == 'function') {
-                        e.handleResult = handleResult;
-                        _this.onkeyevent(e, handleResult);
-                    }
-                }
-            };
-
             return _this;
+        }
+
+        function _dispatchKey(e) {
+            var type = e.type.toLowerCase();
+            e.keyHash = key.hash(e);
+            e.isKey = function(keyExpression) {
+                if (!keyExpression) return false;
+                var expressions = keyExpression.split(/\s*\|\s*/);
+                while(expressions.length) {
+                    if (e.keyHash == key.hash(expressions.shift())) return true;
+                }
+                return false;
+            };
+            e[type] = true;
+            // Boot: keyup and activeKey pressed on IDLE, active main state.
+            if (e.keydown && _this.activeKey && e.isKey(_this.activeKey) && _currentState == IDLE && _mainState) {
+                _activeState('main', {
+                    x: $container.clientWidth / 2,
+                    y: $container.clientHeight / 2
+                });
+                return;
+            }
+            var handleState = _currentState == IDLE ? _mainState : _currentState;
+            if (handleState) {
+                var handleResult = handleState.handleKeyEvent(e);
+                if (typeof(_this.onkeyevent) == 'function') {
+                    e.handleResult = handleResult;
+                    _this.onkeyevent(e, handleResult);
+                }
+            }
         }
 
         function _addState(name) {
@@ -174,8 +183,10 @@ define(function(require, exports, module) {
             }
         }
 
+        this.control = _control;
         this.state = _addState;
         this.active = _activeState;
+        this.dispatch = _dispatchKey;
         this.activeKey = 'space';
         this.actionKey = 'space';
     }
@@ -448,7 +459,7 @@ define(function(require, exports, module) {
             if (e.keydown) {
                 allButtons.forEach(function(button) {
                     if (e.isKey(button.key)) {
-                        if (stateActived) {
+                        if (stateActived || hotBox.hintDeactiveMainState) {
                             select(button);
                             press(button);
                             handleResult = 'buttonpress';
@@ -496,7 +507,7 @@ define(function(require, exports, module) {
                     }
                 }
             }
-            else if (e.keyup && stateActived) {
+            else if (e.keyup && (stateActived || !hotBox.hintDeactiveMainState)) {
                 if (pressedButton) {
                     if (e.isKey('space') && selectedButton == pressedButton || e.isKey(pressedButton.key)) {
                         execute(pressedButton);
