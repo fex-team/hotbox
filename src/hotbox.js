@@ -28,7 +28,7 @@ define(function(require, exports, module) {
     }
     /*******************/
 
-    var IDLE = 'idle';
+    var IDLE = HotBox.STATE_IDLE = 'idle';
     var div = 'div';
 
     /**
@@ -131,7 +131,9 @@ define(function(require, exports, module) {
                     e.handleResult = handleResult;
                     _this.onkeyevent(e, handleResult);
                 }
+                return handleResult;
             }
+            return null;
         }
 
         function _addState(name) {
@@ -206,6 +208,7 @@ define(function(require, exports, module) {
         // 四种可见的按钮容器
         var $center = createElement(div);
         var $ring = createElement(div);
+        var $ringShape = createElement('div');
         var $top = createElement(div);
         var $bottom = createElement(div);
 
@@ -214,6 +217,7 @@ define(function(require, exports, module) {
         addElementClass($state, stateName);
         addElementClass($center, 'center');
         addElementClass($ring, 'ring');
+        addElementClass($ringShape, 'ring-shape');
         addElementClass($top, 'top');
         addElementClass($bottom, 'bottom');
 
@@ -221,6 +225,7 @@ define(function(require, exports, module) {
         appendChild(hotBox.$element, $state);
         appendChild($state, $center);
         appendChild($state, $ring);
+        appendChild($ring, $ringShape);
         appendChild($state, $top);
         appendChild($state, $bottom);
 
@@ -258,6 +263,9 @@ define(function(require, exports, module) {
                 if (buttons.center) {
                     buttons.center.indexedPosition = [0, 0];
                 }
+
+                $ringShape.style.marginLeft = $ringShape.style.marginTop = -radius + 'px';
+                $ringShape.style.width = $ringShape.style.height = (radius + radius) + 'px';
 
                 var $button, angle, x, y;
                 for (var i = 0; i < ring.length; i++) {
