@@ -349,6 +349,10 @@ define(function(require, exports, module) {
             }
         }
 
+        function alwaysEnable() {
+            return true;
+        }
+
         // 为状态创建按钮
         function createButton(option) {
             var $button = createElement(div);
@@ -365,7 +369,7 @@ define(function(require, exports, module) {
 
             return {
                 action: option.action,
-                enable: option.enable,
+                enable: option.enable || alwaysEnable,
                 key: option.key,
                 next: option.next,
                 label: option.label,
@@ -403,6 +407,12 @@ define(function(require, exports, module) {
                 $state.style.left = position.x + 'px';
                 $state.style.top = position.y + 'px';
             }
+            allButtons.forEach(function(button) {
+                var $button = button.$button;
+                if ($button) {
+                    $button.classList[button.enable() ? 'add' : 'remove']('enabled');
+                }
+            });
             addElementClass($state, STATE_ACTIVE_CLASS);
             if (needLayout) {
                 layout();
@@ -500,6 +510,9 @@ define(function(require, exports, module) {
                             return;
                         }
                         var neighbor = selectedButton.neighbor[dir];
+                        while (neighbor && !neighbor.enable()) {
+                            neighbor = neighbor.neighbor[dir];
+                        }
                         if (neighbor) {
                             select(neighbor);
                         }

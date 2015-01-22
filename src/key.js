@@ -29,7 +29,10 @@ define(function(require, exports, module) {
         if (keyEvent.shiftKey) {
             hashCode |= SHIFT_MASK;
         }
-        hashCode |= keyEvent.keyCode;
+        // Shift, Control, Alt KeyCode ignored.
+        if ([16, 17, 18, 91].indexOf(keyEvent.keyCode) == -1) {
+            hashCode |= keyEvent.keyCode;
+        }
         return hashCode;
     }
 

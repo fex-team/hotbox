@@ -16,7 +16,6 @@
                 height: 70px;
                 margin-left: -35px;
                 margin-top: -35px;
-                background: white;
                 border-radius: 100%;
                 box-shadow: 0 0 30px rgba(0, 0, 0, .3);
             }
@@ -49,7 +48,6 @@
             .button {
                 display: inline-block;
                 padding: 8px 15px;
-                background: white;
                 margin: 0 10px;
                 border-radius: 15px;
                 box-shadow: 0 0 30px rgba(0, 0, 0, .3);
@@ -76,8 +74,20 @@
             }
         }
         .button {
+            background: #F9F9F9;
             overflow: hidden;
             cursor: default;
+
+            .key, .label {
+                opacity: 0.3;
+            }
+        }
+        .button.enabled {
+            background: white;
+
+            .key, .label {
+                opacity: 1;
+            }
 
             &:hover {
                 background: lighten(rgb(228, 93, 92), 5%);
