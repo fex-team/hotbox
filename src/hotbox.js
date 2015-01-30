@@ -223,9 +223,9 @@ define(function(require, exports, module) {
 
         // 摆放容器
         appendChild(hotBox.$element, $state);
+        appendChild($state, $ringShape);
         appendChild($state, $center);
         appendChild($state, $ring);
-        appendChild($ring, $ringShape);
         appendChild($state, $top);
         appendChild($state, $bottom);
 
@@ -278,6 +278,7 @@ define(function(require, exports, module) {
                     $button.style.top = y + 'px';
                 }
             }
+
             function layoutTop(radius) {
                 var xOffset = -$top.clientWidth / 2;
                 var yOffset = -radius * 2 - $top.clientHeight / 2;
