@@ -371,6 +371,7 @@ define(function(require, exports, module) {
             return {
                 action: option.action,
                 enable: option.enable || alwaysEnable,
+                beforeShow: option.beforeShow,
                 key: option.key,
                 next: option.next,
                 label: option.label,
@@ -412,6 +413,10 @@ define(function(require, exports, module) {
                 var $button = button.$button;
                 if ($button) {
                     $button.classList[button.enable() ? 'add' : 'remove']('enabled');
+                }
+
+                if (button.beforeShow) {
+                    button.beforeShow();
                 }
             });
             addElementClass($state, STATE_ACTIVE_CLASS);
