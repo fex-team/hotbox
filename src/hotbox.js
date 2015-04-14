@@ -500,7 +500,7 @@ define(function(require, exports, module) {
                 });
                 if (stateActived) {
                     if (e.isKey('esc')) {
-                        if (pressedButton) {
+                        if (pressedButton) { // 若存在已经按下的按钮，则取消操作
                             if (!e.isKey(pressedButton.key)) { // the button is not esc
                                 press(null);
                             }
