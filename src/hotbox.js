@@ -482,7 +482,7 @@ define(function(require, exports, module) {
             var handleResult = null;
             if (e.keydown) {
                 allButtons.forEach(function(button) {
-                    if (e.isKey(button.key)) {
+                    if (button.enable() && e.isKey(button.key)) {
                         if (stateActived || hotBox.hintDeactiveMainState) {
                             select(button);
                             press(button);
