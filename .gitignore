@@ -3,3 +3,4 @@ dist/
 hotbox.css
 hotbox.js
 hotbox.min.js
+node_modules/
