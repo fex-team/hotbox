@@ -1,7 +1,10 @@
 {
   "name": "hotbox",
   "version": "1.0.0",
-  "main": "hotbox.min.js",
+  "main": [
+    "dist/hotbox.min.js",
+    "dist/hotbox.css"
+  ],
   "keywords": [
     "hotbox",
     "html5",

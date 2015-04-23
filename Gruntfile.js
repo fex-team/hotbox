@@ -45,7 +45,7 @@ module.exports = function(grunt) {
             merge: {
                 files: [{
                     src: 'src/*.js',
-                    dest: 'hotbox.js'
+                    dest: 'dist/hotbox.js'
                 }]
             }
         },
@@ -58,7 +58,7 @@ module.exports = function(grunt) {
                     footer: expose + '})();'
                 },
                 files: {
-                    'hotbox.js': ['hotbox.js']
+                    'dist/hotbox.js': ['dist/hotbox.js']
                 }
             }
         },
@@ -69,38 +69,29 @@ module.exports = function(grunt) {
             },
             minimize: {
                 files: {
-                    'hotbox.min.js': 'hotbox.js'
+                    'dist/hotbox.min.js': 'dist/hotbox.js'
                 }
             }
         },
 
         less: {
-            dev: {
-                files: {
-                    'hotbox.css': [
-                        'less/hotbox.less'
-                    ]
-                },
-                options: {
-                    sourceMap: true
-                }
-            },
             compile: {
                 files: {
-                    'hotbox.css': [
+                    'dist/hotbox.css': [
                         'less/hotbox.less'
                     ]
                 },
                 options: {
-                    sourceMap: false
+                    sourceMap: true,
+                    sourceMapFilename: 'dist/hotbox.css.map'
                 }
             }
         },
 
         autoprefixer: {
             all: {
-                src: 'hotbox.css',
-                dest: 'hotbox.css'
+                src: 'dist/hotbox.css',
+                dest: 'dist/hotbox.css'
             }
         },
 
@@ -115,6 +106,7 @@ module.exports = function(grunt) {
 
 
     // Build task(s).
-    grunt.registerTask('default', ['dependence', 'concat', 'uglify', 'less', 'autoprefixer']);
+    grunt.registerTask('build', ['dependence', 'concat', 'uglify', 'less', 'autoprefixer']);
+    grunt.registerTask('dev', ['watch']);
 
 };
