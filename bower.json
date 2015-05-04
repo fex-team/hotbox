@@ -1,6 +1,6 @@
 {
     "name": "hotbox",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "main": ["hotbox.min.js", "hotbox.css"],
     "keywords": ["hotbox", "html5", "javascript", "ui"],
     "ignore": [".gitignore", ".jscsrc", ".jshintrc", "Gruntfile.js", "package.json"]
