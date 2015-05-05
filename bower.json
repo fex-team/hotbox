@@ -1,7 +1,7 @@
 {
   "name": "hotbox",
-  "version": "1.0.0",
-  "main": "hotbox.min.js",
+  "version": "1.0.4",
+  "main": ["hotbox.js", "hotbox.css"],
   "keywords": [
     "hotbox",
     "html5",
@@ -15,7 +15,7 @@
     "Gruntfile.js",
     "package.json"
   ],
-  "dependencies": {
+  "devDependencies": {
     "seajs": "~2.3.0"
   }
 }
