@@ -4,40 +4,46 @@ define(function(require, exports, module) {
     var FOCUS_CLASS = 'hotbox-focus';
     var RECEIVER_CLASS = 'hotbox-key-receiver';
 
-    function KeyControl($container) {
-        var _actived = true;
-        var _receiver = null;
+    function KeyControl(hotbox) {
         var _this = this;
+        var _receiver;
+        var _actived = true;
+        var _receiverIsSelfCreated = false;
+        var $container = hotbox.$container;
 
         _createReceiver();
+        _bindReceiver();
+        _bindContainer();
+        _active();
 
         function _createReceiver() {
             _receiver = document.createElement('input');
             _receiver.classList.add(RECEIVER_CLASS);
+            $container.appendChild(_receiver);
+            _receiverIsSelfCreated = true;
+        }
+
+        function _bindReceiver() {
             _receiver.onkeyup = _handle;
             _receiver.onkeypress = _handle;
             _receiver.onkeydown = _handle;
             _receiver.onfocus = _active;
             _receiver.onblur = _deactive;
-            _receiver.oninput = function(e) { _receiver.value = null; };
-            $container.appendChild(_receiver);
-            _active();
+            if (_receiverIsSelfCreated) {
+                _receiver.oninput = function(e) { _receiver.value = null; };
+            }
+        }
+
+        function _bindContainer() {
+            $container.onmousedown = function(e) {
+                _active();
+                e.preventDefault();
+            };
         }
 
         function _handle(keyEvent) {
             if (!_actived) return;
-
-            var type = keyEvent.type.toLowerCase();
-            var handler = _this['on' + type];
-
-            if (handler) {
-                keyEvent.keyHash = key.hash(keyEvent);
-                keyEvent.isKey = function(keyExpression) {
-                    return keyEvent.keyHash == key.hash(keyExpression);
-                };
-                keyEvent[type] = true;
-                handler(keyEvent);
-            }
+            hotbox.dispatch(keyEvent);
         }
 
         function _active() {
@@ -53,6 +59,7 @@ define(function(require, exports, module) {
             $container.classList.remove(FOCUS_CLASS);
         }
 
+        this.handle = _handle;
         this.active = _active;
         this.deactive = _deactive;
     }

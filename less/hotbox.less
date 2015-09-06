@@ -2,6 +2,8 @@
 .hotbox {
     font-family: Arial;
     position: absolute;
+    left: 0;
+    top: 0;
     overflow: visible;
     .state {
         position: absolute;
@@ -14,7 +16,6 @@
                 height: 70px;
                 margin-left: -35px;
                 margin-top: -35px;
-                background: white;
                 border-radius: 100%;
                 box-shadow: 0 0 30px rgba(0, 0, 0, .3);
             }
@@ -27,11 +28,22 @@
             .label {
                 font-size: 16px;
                 margin-top: 17px;
+                color: black;
+                font-weight: normal;
+                line-height: 1em;
             }
             .key {
                 font-size: 12px;
                 color: #999;
             }
+        }
+        .ring-shape {
+            position: absolute;
+            left: -25px;
+            top: -25px;
+            border: 25px solid rgba(0, 0, 0, .3);
+            border-radius: 100%;
+            box-sizing: content-box;
         }
         .top, .bottom {
             position: absolute;
@@ -39,7 +51,6 @@
             .button {
                 display: inline-block;
                 padding: 8px 15px;
-                background: white;
                 margin: 0 10px;
                 border-radius: 15px;
                 box-shadow: 0 0 30px rgba(0, 0, 0, .3);
@@ -49,6 +60,8 @@
                     font-size: 14px;
                     line-height: 14px;
                     vertical-align: middle;
+                    color: black;
+                    line-height: 1em;
                 }
                 .key {
                     font-size: 12px;
@@ -66,8 +79,20 @@
             }
         }
         .button {
+            background: #F9F9F9;
             overflow: hidden;
             cursor: default;
+
+            .key, .label {
+                opacity: 0.3;
+            }
+        }
+        .button.enabled {
+            background: white;
+
+            .key, .label {
+                opacity: 1;
+            }
 
             &:hover {
                 background: lighten(rgb(228, 93, 92), 5%);

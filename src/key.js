@@ -11,7 +11,12 @@ define(function(require, exports, module) {
         }
         return hashKeyEvent(unknown);
     }
+    function is(a, b) {
+        return a && b && hash(a) == hash(b);
+    }
     exports.hash = hash;
+    exports.is = is;
+
 
     function hashKeyEvent(keyEvent) {
         var hashCode = 0;
@@ -24,7 +29,10 @@ define(function(require, exports, module) {
         if (keyEvent.shiftKey) {
             hashCode |= SHIFT_MASK;
         }
-        hashCode |= keyEvent.keyCode;
+        // Shift, Control, Alt KeyCode ignored.
+        if ([16, 17, 18, 91].indexOf(keyEvent.keyCode) == -1) {
+            hashCode |= keyEvent.keyCode;
+        }
         return hashCode;
     }
 

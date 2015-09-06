@@ -1,34 +1,34 @@
-define('hotbox', function(require, exports, module) {
+define(function(require, exports, module) {
     var key = require('./key');
     var KeyControl = require('./keycontrol');
 
     /**** Dom Utils ****/
-        function createElement(name) {
-            return document.createElement(name);
-        }
+    function createElement(name) {
+        return document.createElement(name);
+    }
 
-        function setElementAttribute(element, name, value) {
-            element.setAttribute(name, value);
-        }
+    function setElementAttribute(element, name, value) {
+        element.setAttribute(name, value);
+    }
 
-        function getElementAttribute(element, name) {
-            return element.getAttribute(name);
-        }
+    function getElementAttribute(element, name) {
+        return element.getAttribute(name);
+    }
 
-        function addElementClass(element, name) {
-            element.classList.add(name);
-        }
+    function addElementClass(element, name) {
+        element.classList.add(name);
+    }
 
-        function removeElementClass(element, name) {
-            element.classList.remove(name);
-        }
+    function removeElementClass(element, name) {
+        element.classList.remove(name);
+    }
 
-        function appendChild(parent, child) {
-            parent.appendChild(child);
-        }
+    function appendChild(parent, child) {
+        parent.appendChild(child);
+    }
     /*******************/
 
-    var IDLE = 'idle';
+    var IDLE = HotBox.STATE_IDLE = 'idle';
     var div = 'div';
 
     /**
@@ -53,64 +53,87 @@ define('hotbox', function(require, exports, module) {
         if (!$container || !($container instanceof HTMLElement)) {
             throw new Error('No container or not invalid container for hot box');
         }
+
+        // 创建 HotBox Dom 解构
         var $hotBox = createElement(div);
         addElementClass($hotBox, 'hotbox');
         appendChild($container, $hotBox);
 
+        // 保存 Dom 解构和父容器
         this.$element = $hotBox;
         this.$container = $container;
 
+        // 已定义的状态（string => HotBoxState）
         var _states = {};
+
+        // 主状态（HotBoxState）
         var _mainState = null;
+
+        // 当前状态（HotBoxState）
         var _currentState = IDLE;
+
+        // 当前状态堆栈
         var _stateStack = [];
+
+        // 实例引用
         var _this = this;
+        var _controler;
 
-        control();
+        /**
+         * Controller: {
+         *     constructor(hotbox: HotBox),
+         *     active: () => void
+         * }
+         */
+        function _control(Controller) {
+            if (_controler) {
+                _controler.active();
+                return;
+            }
 
-        function control() {
-            var keyControl = new KeyControl($container);
+            Controller = Controller || KeyControl;
 
-            $container.onmousedown = function(e) {
-                keyControl.active();
-                e.preventDefault();
-                if (_currentState != IDLE) {
-                    _activeState(IDLE);
-                }
-            };
+            _controler = new Controller(_this);
+            _controler.active();
 
             $hotBox.onmousedown = function(e) {
                 e.stopPropagation();
                 e.preventDefault();
             };
 
-            $container.oncontextmenu = function(e) {
-                if (_this.openOnContextMenu) {
-                    e.preventDefault();
-                    if (_currentState == IDLE) {
-                        _activeState('main', {
-                            x: e.offsetX,
-                            y: e.offsetY
-                        });
-                        console.log(e);
-                    }
-                }
-            };
+            return _this;
+        }
 
-            keyControl.onkeydown = keyControl.onkeyup = function(e) {
-                // Boot: keyup and activeKey pressed on IDLE, active main state.
-                if (e.keydown && _this.activeKey && e.isKey(_this.activeKey) && _currentState == IDLE && _mainState) {
-                    _activeState('main', {
-                        x: $container.clientWidth / 2,
-                        y: $container.clientHeight / 2
-                    });
-                    return;
+        function _dispatchKey(e) {
+            var type = e.type.toLowerCase();
+            e.keyHash = key.hash(e);
+            e.isKey = function(keyExpression) {
+                if (!keyExpression) return false;
+                var expressions = keyExpression.split(/\s*\|\s*/);
+                while(expressions.length) {
+                    if (e.keyHash == key.hash(expressions.shift())) return true;
                 }
-                var handleState = _currentState == IDLE ? _mainState : _currentState;
-                if (handleState) {
-                    handleState.handleKeyEvent(e);
-                }
+                return false;
             };
+            e[type] = true;
+            // Boot: keyup and activeKey pressed on IDLE, active main state.
+            if (e.keydown && _this.activeKey && e.isKey(_this.activeKey) && _currentState == IDLE && _mainState) {
+                _activeState('main', {
+                    x: $container.clientWidth / 2,
+                    y: $container.clientHeight / 2
+                });
+                return;
+            }
+            var handleState = _currentState == IDLE ? _mainState : _currentState;
+            if (handleState) {
+                var handleResult = handleState.handleKeyEvent(e);
+                if (typeof(_this.onkeyevent) == 'function') {
+                    e.handleResult = handleResult;
+                    _this.onkeyevent(e, handleResult);
+                }
+                return handleResult;
+            }
+            return null;
         }
 
         function _addState(name) {
@@ -154,13 +177,18 @@ define('hotbox', function(require, exports, module) {
                 }
                 var newState = _states[name];
                 _stateStack.unshift(newState);
+                if (typeof(_this.position) == 'function') {
+                    position = _this.position(position);
+                }
                 newState.active(position);
                 _currentState = newState;
             }
         }
 
+        this.control = _control;
         this.state = _addState;
         this.active = _activeState;
+        this.dispatch = _dispatchKey;
         this.activeKey = 'space';
         this.actionKey = 'space';
     }
@@ -180,6 +208,7 @@ define('hotbox', function(require, exports, module) {
         // 四种可见的按钮容器
         var $center = createElement(div);
         var $ring = createElement(div);
+        var $ringShape = createElement('div');
         var $top = createElement(div);
         var $bottom = createElement(div);
 
@@ -188,11 +217,13 @@ define('hotbox', function(require, exports, module) {
         addElementClass($state, stateName);
         addElementClass($center, 'center');
         addElementClass($ring, 'ring');
+        addElementClass($ringShape, 'ring-shape');
         addElementClass($top, 'top');
         addElementClass($bottom, 'bottom');
 
         // 摆放容器
         appendChild(hotBox.$element, $state);
+        appendChild($state, $ringShape);
         appendChild($state, $center);
         appendChild($state, $ring);
         appendChild($state, $top);
@@ -233,6 +264,9 @@ define('hotbox', function(require, exports, module) {
                     buttons.center.indexedPosition = [0, 0];
                 }
 
+                $ringShape.style.marginLeft = $ringShape.style.marginTop = -radius + 'px';
+                $ringShape.style.width = $ringShape.style.height = (radius + radius) + 'px';
+
                 var $button, angle, x, y;
                 for (var i = 0; i < ring.length; i++) {
                     $button = ring[i].$button;
@@ -244,6 +278,7 @@ define('hotbox', function(require, exports, module) {
                     $button.style.top = y + 'px';
                 }
             }
+
             function layoutTop(radius) {
                 var xOffset = -$top.clientWidth / 2;
                 var yOffset = -radius * 2 - $top.clientHeight / 2;
@@ -315,6 +350,10 @@ define('hotbox', function(require, exports, module) {
             }
         }
 
+        function alwaysEnable() {
+            return true;
+        }
+
         // 为状态创建按钮
         function createButton(option) {
             var $button = createElement(div);
@@ -331,17 +370,22 @@ define('hotbox', function(require, exports, module) {
 
             return {
                 action: option.action,
-                enable: option.enable,
+                enable: option.enable || alwaysEnable,
+                beforeShow: option.beforeShow,
                 key: option.key,
                 next: option.next,
                 label: option.label,
+                data: option.data || null,
                 $button: $button
             };
         }
 
         // 默认按钮渲染
         function defaultButtonRender(format, option) {
-            return format('<span class="label">{label}</span><span class="key">{key}</span>', option);
+            return format('<span class="label">{label}</span><span class="key">{key}</span>', {
+                label: option.label,
+                key: option.key && option.key.split('|')[0]
+            });
         }
 
         // 为当前状态添加按钮
@@ -365,6 +409,16 @@ define('hotbox', function(require, exports, module) {
                 $state.style.left = position.x + 'px';
                 $state.style.top = position.y + 'px';
             }
+            allButtons.forEach(function(button) {
+                var $button = button.$button;
+                if ($button) {
+                    $button.classList[button.enable() ? 'add' : 'remove']('enabled');
+                }
+
+                if (button.beforeShow) {
+                    button.beforeShow();
+                }
+            });
             addElementClass($state, STATE_ACTIVE_CLASS);
             if (needLayout) {
                 layout();
@@ -425,11 +479,18 @@ define('hotbox', function(require, exports, module) {
         };
 
         this.handleKeyEvent = function(e) {
+            var handleResult = null;
             if (e.keydown) {
                 allButtons.forEach(function(button) {
-                    if (e.isKey(button.key)) {
-                        select(button);
-                        press(button);
+                    if (button.enable() && e.isKey(button.key)) {
+                        if (stateActived || hotBox.hintDeactiveMainState) {
+                            select(button);
+                            press(button);
+                            handleResult = 'buttonpress';
+                        } else {
+                            execute(button);
+                            handleResult = 'execute';
+                        }
                         e.preventDefault();
                         e.stopPropagation();
                         if (!stateActived && hotBox.hintDeactiveMainState) {
@@ -437,48 +498,69 @@ define('hotbox', function(require, exports, module) {
                         }
                     }
                 });
-                if (e.isKey('esc')) {
-                    if (pressedButton) {
-                        if (!e.isKey(pressedButton.key)) { // the button is not esc
-                            press(null);
+                if (stateActived) {
+                    if (e.isKey('esc')) {
+                        if (pressedButton) { // 若存在已经按下的按钮，则取消操作
+                            if (!e.isKey(pressedButton.key)) { // the button is not esc
+                                press(null);
+                            }
+                        } else {
+                            hotBox.active('back');
                         }
-                    } else {
-                        hotBox.active('back');
+                        return 'back';
                     }
-                    return;
-                }
-                ['up', 'down', 'left', 'right'].forEach(function(dir) {
-                    if (!e.isKey(dir)) return;
-                    if (!selectedButton) {
-                        select(buttons.center || buttons.ring[0] || buttons.top[0] || buttons.bottom[0]);
-                        return;
+                    ['up', 'down', 'left', 'right'].forEach(function(dir) {
+                        if (!e.isKey(dir)) return;
+                        if (!selectedButton) {
+                            select(buttons.center || buttons.ring[0] || buttons.top[0] || buttons.bottom[0]);
+                            return;
+                        }
+                        var neighbor = selectedButton.neighbor[dir];
+                        while (neighbor && !neighbor.enable()) {
+                            neighbor = neighbor.neighbor[dir];
+                        }
+                        if (neighbor) {
+                            select(neighbor);
+                        }
+                        handleResult = 'navigate';
+                    });
+
+                    if (e.isKey('space') && selectedButton) {
+                        press(selectedButton);
+                        handleResult = 'buttonpress';
+                    } else if (pressedButton && pressedButton != selectedButton) {
+                        press(null);
+                        handleResult = 'selectcancel';
                     }
-                    var neighbor = selectedButton.neighbor[dir];
-                    if (neighbor) {
-                        select(neighbor);
-                    }
-                });
-                if (e.isKey('space') && selectedButton) {
-                    press(selectedButton);
-                } else if (pressedButton && pressedButton != selectedButton) {
-                    press(null);
                 }
             }
-            else if (e.keyup) {
+            else if (e.keyup && (stateActived || !hotBox.hintDeactiveMainState)) {
                 if (pressedButton) {
                     if (e.isKey('space') && selectedButton == pressedButton || e.isKey(pressedButton.key)) {
                         execute(pressedButton);
                         e.preventDefault();
                         e.stopPropagation();
+                        handleResult = 'execute';
                     }
+                /*
+                * Add by zhangbobell 2015.09.06
+                * 增加了下面这一个判断因为 safari 下开启输入法后，所有的 keydown 的 keycode 都为 229，
+                * 只能以 keyup 的 keycode 进行判断
+                * */
+                } else if (e.isKey('space') && selectedButton) {
+                    execute(selectedButton);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleResult = "execute";
                 }
             }
+            return handleResult;
         };
 
         function execute(button) {
             if (button) {
                 if (!button.enable || button.enable()) {
-                    if (button.action) button.action();
+                    if (button.action) button.action(button);
                     hotBox.active(button.next || IDLE);
                 }
                 press(null);
