@@ -1,7 +1,10 @@
 {
   "name": "hotbox",
-  "version": "1.0.7",
-  "main": "hotbox.min.js",
+  "version": "1.0.8",
+  "main": [
+    "hotbox.js",
+    "hotbox.css"
+  ],
   "keywords": [
     "hotbox",
     "html5",
