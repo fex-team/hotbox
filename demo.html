@@ -27,12 +27,13 @@
     <div class="message">编辑区域获得焦点时，按空格呼出热盒。主菜单的快捷键可以直接执行</div>
     <div class="editor"></div>
 </body>
-<script src="hotbox.min.js"></script>
+<script src="hotbox.js"></script>
 <script>
     /* global HotBox: true */
     var hotbox = new HotBox('.editor');
 
     hotbox.hintDeactiveMainState = true;
+
     hotbox.openOnContextMenu = true;
 
     var main = hotbox.state('main');

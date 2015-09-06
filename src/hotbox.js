@@ -490,6 +490,13 @@ define(function(require, exports, module) {
                             select(button);
                             press(button);
                             handleResult = 'buttonpress';
+
+                            // 如果是 keyup 事件触发的，因为没有后续的按键事件，所以就直接执行
+                            if(e.keyup) {
+                                execute(button);
+                                handleResult = 'execute';
+                                return handleResult;
+                            }
                         } else {
                             execute(button);
                             handleResult = 'execute';
