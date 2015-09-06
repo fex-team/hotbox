@@ -542,6 +542,16 @@ define(function(require, exports, module) {
                         e.stopPropagation();
                         handleResult = 'execute';
                     }
+                /*
+                * Add by zhangbobell 2015.09.06
+                * 增加了下面这一个判断因为 safari 下开启输入法后，所有的 keydown 的 keycode 都为 229，
+                * 只能以 keyup 的 keycode 进行判断
+                * */
+                } else if (e.isKey('space') && selectedButton) {
+                    execute(selectedButton);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleResult = "execute";
                 }
             }
             return handleResult;
