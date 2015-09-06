@@ -66,6 +66,9 @@ define(function(require, exports, module) {
         // 标示是否是输入法状态
         this.isIME = false;
 
+        // 记录位置
+        this.position = {};
+
         // 已定义的状态（string => HotBoxState）
         var _states = {};
 
@@ -152,6 +155,8 @@ define(function(require, exports, module) {
         }
 
         function _activeState(name, position) {
+            _this.position = position;
+
             // 回到 IDLE
             if (name == IDLE) {
                 if (_currentState != IDLE) {
@@ -504,7 +509,7 @@ define(function(require, exports, module) {
                         e.preventDefault();
                         e.stopPropagation();
                         if (!stateActived && hotBox.hintDeactiveMainState) {
-                            hotBox.active(stateName);
+                            hotBox.active(stateName, hotBox.position);
                         }
                     }
                 });
@@ -515,7 +520,7 @@ define(function(require, exports, module) {
                                 press(null);
                             }
                         } else {
-                            hotBox.active('back');
+                            hotBox.active('back', hotBox.position);
                         }
                         return 'back';
                     }
@@ -575,7 +580,7 @@ define(function(require, exports, module) {
             if (button) {
                 if (!button.enable || button.enable()) {
                     if (button.action) button.action(button);
-                    hotBox.active(button.next || IDLE);
+                    hotBox.active(button.next || IDLE, hotBox.position);
                 }
                 press(null);
                 select(null);

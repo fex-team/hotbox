@@ -101,6 +101,8 @@ _p[1] = {
             this.$container = $container;
             // 标示是否是输入法状态
             this.isIME = false;
+            // 记录位置
+            this.position = {};
             // 已定义的状态（string => HotBoxState）
             var _states = {};
             // 主状态（HotBoxState）
@@ -175,6 +177,7 @@ _p[1] = {
                 return _states[name];
             }
             function _activeState(name, position) {
+                _this.position = position;
                 // 回到 IDLE
                 if (name == IDLE) {
                     if (_currentState != IDLE) {
@@ -493,7 +496,7 @@ _p[1] = {
                             e.preventDefault();
                             e.stopPropagation();
                             if (!stateActived && hotBox.hintDeactiveMainState) {
-                                hotBox.active(stateName);
+                                hotBox.active(stateName, hotBox.position);
                             }
                         }
                     });
@@ -506,7 +509,7 @@ _p[1] = {
                                     press(null);
                                 }
                             } else {
-                                hotBox.active("back");
+                                hotBox.active("back", hotBox.position);
                             }
                             return "back";
                         }
@@ -561,7 +564,7 @@ _p[1] = {
                 if (button) {
                     if (!button.enable || button.enable()) {
                         if (button.action) button.action(button);
-                        hotBox.active(button.next || IDLE);
+                        hotBox.active(button.next || IDLE, hotBox.position);
                     }
                     press(null);
                     select(null);
