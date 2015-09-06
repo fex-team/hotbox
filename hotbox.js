@@ -1,9 +1,9 @@
 /*!
  * ====================================================
- * Hot Box UI - v0.1.0 - 2014-12-18
+ * Hot Box UI - v0.1.0 - 2015-09-06
  * https://github.com/fex-team/hotbox
  * GitHub: https://github.com/fex-team/hotbox.git 
- * Copyright (c) 2014 Baidu FEX; Licensed BSD
+ * Copyright (c) 2015 Baidu FEX; Licensed BSD
  * ====================================================
  */
 
@@ -18,7 +18,18 @@ var _p = {
                 exports: {}
             }, returnValue = _p[index].value(null, module.exports, module);
             _p[index].inited = true;
-            return _p[index].value = returnValue || module.exports;
+            _p[index].value = returnValue;
+            if (returnValue !== undefined) {
+                return returnValue;
+            } else {
+                for (var key in module.exports) {
+                    if (module.exports.hasOwnProperty(key)) {
+                        _p[index].inited = true;
+                        _p[index].value = module.exports;
+                        return module.exports;
+                    }
+                }
+            }
         } else {
             _p[index].inited = true;
             return _p[index].value;
@@ -58,7 +69,7 @@ _p[1] = {
             parent.appendChild(child);
         }
         /*******************/
-        var IDLE = "idle";
+        var IDLE = HotBox.STATE_IDLE = "idle";
         var div = "div";
         /**
      * Simple Formatter
@@ -81,56 +92,74 @@ _p[1] = {
             if (!$container || !($container instanceof HTMLElement)) {
                 throw new Error("No container or not invalid container for hot box");
             }
+            // 创建 HotBox Dom 解构
             var $hotBox = createElement(div);
             addElementClass($hotBox, "hotbox");
             appendChild($container, $hotBox);
+            // 保存 Dom 解构和父容器
             this.$element = $hotBox;
             this.$container = $container;
+            // 已定义的状态（string => HotBoxState）
             var _states = {};
+            // 主状态（HotBoxState）
             var _mainState = null;
+            // 当前状态（HotBoxState）
             var _currentState = IDLE;
+            // 当前状态堆栈
             var _stateStack = [];
+            // 实例引用
             var _this = this;
-            control();
-            function control() {
-                var keyControl = new KeyControl($container);
-                $container.onmousedown = function(e) {
-                    keyControl.active();
-                    e.preventDefault();
-                    if (_currentState != IDLE) {
-                        _activeState(IDLE);
-                    }
-                };
+            var _controler;
+            /**
+         * Controller: {
+         *     constructor(hotbox: HotBox),
+         *     active: () => void
+         * }
+         */
+            function _control(Controller) {
+                if (_controler) {
+                    _controler.active();
+                    return;
+                }
+                Controller = Controller || KeyControl;
+                _controler = new Controller(_this);
+                _controler.active();
                 $hotBox.onmousedown = function(e) {
                     e.stopPropagation();
                     e.preventDefault();
                 };
-                $container.oncontextmenu = function(e) {
-                    if (_this.openOnContextMenu) {
-                        e.preventDefault();
-                        if (_currentState == IDLE) {
-                            _activeState("main", {
-                                x: e.offsetX,
-                                y: e.offsetY
-                            });
-                            console.log(e);
-                        }
+                return _this;
+            }
+            function _dispatchKey(e) {
+                var type = e.type.toLowerCase();
+                e.keyHash = key.hash(e);
+                e.isKey = function(keyExpression) {
+                    if (!keyExpression) return false;
+                    var expressions = keyExpression.split(/\s*\|\s*/);
+                    while (expressions.length) {
+                        if (e.keyHash == key.hash(expressions.shift())) return true;
                     }
+                    return false;
                 };
-                keyControl.onkeydown = keyControl.onkeyup = function(e) {
-                    // Boot: keyup and activeKey pressed on IDLE, active main state.
-                    if (e.keydown && _this.activeKey && e.isKey(_this.activeKey) && _currentState == IDLE && _mainState) {
-                        _activeState("main", {
-                            x: $container.clientWidth / 2,
-                            y: $container.clientHeight / 2
-                        });
-                        return;
+                e[type] = true;
+                // Boot: keyup and activeKey pressed on IDLE, active main state.
+                if (e.keydown && _this.activeKey && e.isKey(_this.activeKey) && _currentState == IDLE && _mainState) {
+                    _activeState("main", {
+                        x: $container.clientWidth / 2,
+                        y: $container.clientHeight / 2
+                    });
+                    return;
+                }
+                var handleState = _currentState == IDLE ? _mainState : _currentState;
+                if (handleState) {
+                    var handleResult = handleState.handleKeyEvent(e);
+                    if (typeof _this.onkeyevent == "function") {
+                        e.handleResult = handleResult;
+                        _this.onkeyevent(e, handleResult);
                     }
-                    var handleState = _currentState == IDLE ? _mainState : _currentState;
-                    if (handleState) {
-                        handleState.handleKeyEvent(e);
-                    }
-                };
+                    return handleResult;
+                }
+                return null;
             }
             function _addState(name) {
                 if (!name) return _currentState;
@@ -168,12 +197,17 @@ _p[1] = {
                     }
                     var newState = _states[name];
                     _stateStack.unshift(newState);
+                    if (typeof _this.position == "function") {
+                        position = _this.position(position);
+                    }
                     newState.active(position);
                     _currentState = newState;
                 }
             }
+            this.control = _control;
             this.state = _addState;
             this.active = _activeState;
+            this.dispatch = _dispatchKey;
             this.activeKey = "space";
             this.actionKey = "space";
         }
@@ -189,6 +223,7 @@ _p[1] = {
             // 四种可见的按钮容器
             var $center = createElement(div);
             var $ring = createElement(div);
+            var $ringShape = createElement("div");
             var $top = createElement(div);
             var $bottom = createElement(div);
             // 添加 CSS 类
@@ -196,10 +231,12 @@ _p[1] = {
             addElementClass($state, stateName);
             addElementClass($center, "center");
             addElementClass($ring, "ring");
+            addElementClass($ringShape, "ring-shape");
             addElementClass($top, "top");
             addElementClass($bottom, "bottom");
             // 摆放容器
             appendChild(hotBox.$element, $state);
+            appendChild($state, $ringShape);
             appendChild($state, $center);
             appendChild($state, $ring);
             appendChild($state, $top);
@@ -233,6 +270,8 @@ _p[1] = {
                     if (buttons.center) {
                         buttons.center.indexedPosition = [ 0, 0 ];
                     }
+                    $ringShape.style.marginLeft = $ringShape.style.marginTop = -radius + "px";
+                    $ringShape.style.width = $ringShape.style.height = radius + radius + "px";
                     var $button, angle, x, y;
                     for (var i = 0; i < ring.length; i++) {
                         $button = ring[i].$button;
@@ -305,6 +344,9 @@ _p[1] = {
                     }
                 }
             }
+            function alwaysEnable() {
+                return true;
+            }
             // 为状态创建按钮
             function createButton(option) {
                 var $button = createElement(div);
@@ -330,16 +372,21 @@ _p[1] = {
                 }
                 return {
                     action: option.action,
-                    enable: option.enable,
+                    enable: option.enable || alwaysEnable,
+                    beforeShow: option.beforeShow,
                     key: option.key,
                     next: option.next,
                     label: option.label,
+                    data: option.data || null,
                     $button: $button
                 };
             }
             // 默认按钮渲染
             function defaultButtonRender(format, option) {
-                return format('<span class="label">{label}</span><span class="key">{key}</span>', option);
+                return format('<span class="label">{label}</span><span class="key">{key}</span>', {
+                    label: option.label,
+                    key: option.key && option.key.split("|")[0]
+                });
             }
             // 为当前状态添加按钮
             this.button = function(option) {
@@ -361,6 +408,15 @@ _p[1] = {
                     $state.style.left = position.x + "px";
                     $state.style.top = position.y + "px";
                 }
+                allButtons.forEach(function(button) {
+                    var $button = button.$button;
+                    if ($button) {
+                        $button.classList[button.enable() ? "add" : "remove"]("enabled");
+                    }
+                    if (button.beforeShow) {
+                        button.beforeShow();
+                    }
+                });
                 addElementClass($state, STATE_ACTIVE_CLASS);
                 if (needLayout) {
                     layout();
@@ -414,11 +470,18 @@ _p[1] = {
                 }
             };
             this.handleKeyEvent = function(e) {
+                var handleResult = null;
                 if (e.keydown) {
                     allButtons.forEach(function(button) {
-                        if (e.isKey(button.key)) {
-                            select(button);
-                            press(button);
+                        if (button.enable() && e.isKey(button.key)) {
+                            if (stateActived || hotBox.hintDeactiveMainState) {
+                                select(button);
+                                press(button);
+                                handleResult = "buttonpress";
+                            } else {
+                                execute(button);
+                                handleResult = "execute";
+                            }
                             e.preventDefault();
                             e.stopPropagation();
                             if (!stateActived && hotBox.hintDeactiveMainState) {
@@ -426,47 +489,63 @@ _p[1] = {
                             }
                         }
                     });
-                    if (e.isKey("esc")) {
-                        if (pressedButton) {
-                            if (!e.isKey(pressedButton.key)) {
-                                // the button is not esc
-                                press(null);
+                    if (stateActived) {
+                        if (e.isKey("esc")) {
+                            if (pressedButton) {
+                                // 若存在已经按下的按钮，则取消操作
+                                if (!e.isKey(pressedButton.key)) {
+                                    // the button is not esc
+                                    press(null);
+                                }
+                            } else {
+                                hotBox.active("back");
                             }
-                        } else {
-                            hotBox.active("back");
+                            return "back";
                         }
-                        return;
+                        [ "up", "down", "left", "right" ].forEach(function(dir) {
+                            if (!e.isKey(dir)) return;
+                            if (!selectedButton) {
+                                select(buttons.center || buttons.ring[0] || buttons.top[0] || buttons.bottom[0]);
+                                return;
+                            }
+                            var neighbor = selectedButton.neighbor[dir];
+                            while (neighbor && !neighbor.enable()) {
+                                neighbor = neighbor.neighbor[dir];
+                            }
+                            if (neighbor) {
+                                select(neighbor);
+                            }
+                            handleResult = "navigate";
+                        });
+                        if (e.isKey("space") && selectedButton) {
+                            press(selectedButton);
+                            handleResult = "buttonpress";
+                        } else if (pressedButton && pressedButton != selectedButton) {
+                            press(null);
+                            handleResult = "selectcancel";
+                        }
                     }
-                    [ "up", "down", "left", "right" ].forEach(function(dir) {
-                        if (!e.isKey(dir)) return;
-                        if (!selectedButton) {
-                            select(buttons.center || buttons.ring[0] || buttons.top[0] || buttons.bottom[0]);
-                            return;
-                        }
-                        var neighbor = selectedButton.neighbor[dir];
-                        if (neighbor) {
-                            select(neighbor);
-                        }
-                    });
-                    if (e.isKey("space") && selectedButton) {
-                        press(selectedButton);
-                    } else if (pressedButton && pressedButton != selectedButton) {
-                        press(null);
-                    }
-                } else if (e.keyup) {
+                } else if (e.keyup && (stateActived || !hotBox.hintDeactiveMainState)) {
                     if (pressedButton) {
                         if (e.isKey("space") && selectedButton == pressedButton || e.isKey(pressedButton.key)) {
                             execute(pressedButton);
                             e.preventDefault();
                             e.stopPropagation();
+                            handleResult = "execute";
                         }
+                    } else if (e.isKey("space") && selectedButton) {
+                        execute(selectedButton);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleResult = "execute";
                     }
                 }
+                return handleResult;
             };
             function execute(button) {
                 if (button) {
                     if (!button.enable || button.enable()) {
-                        if (button.action) button.action();
+                        if (button.action) button.action(button);
                         hotBox.active(button.next || IDLE);
                     }
                     press(null);
@@ -491,7 +570,11 @@ _p[2] = {
             }
             return hashKeyEvent(unknown);
         }
+        function is(a, b) {
+            return a && b && hash(a) == hash(b);
+        }
         exports.hash = hash;
+        exports.is = is;
         function hashKeyEvent(keyEvent) {
             var hashCode = 0;
             if (keyEvent.ctrlKey || keyEvent.metaKey) {
@@ -503,7 +586,10 @@ _p[2] = {
             if (keyEvent.shiftKey) {
                 hashCode |= SHIFT_MASK;
             }
-            hashCode |= keyEvent.keyCode;
+            // Shift, Control, Alt KeyCode ignored.
+            if ([ 16, 17, 18, 91 ].indexOf(keyEvent.keyCode) == -1) {
+                hashCode |= keyEvent.keyCode;
+            }
             return hashCode;
         }
         function hashKeyExpression(keyExpression) {
@@ -538,37 +624,43 @@ _p[3] = {
         var key = _p.r(2);
         var FOCUS_CLASS = "hotbox-focus";
         var RECEIVER_CLASS = "hotbox-key-receiver";
-        function KeyControl($container) {
-            var _actived = true;
-            var _receiver = null;
+        function KeyControl(hotbox) {
             var _this = this;
+            var _receiver;
+            var _actived = true;
+            var _receiverIsSelfCreated = false;
+            var $container = hotbox.$container;
             _createReceiver();
+            _bindReceiver();
+            _bindContainer();
+            _active();
             function _createReceiver() {
                 _receiver = document.createElement("input");
                 _receiver.classList.add(RECEIVER_CLASS);
+                $container.appendChild(_receiver);
+                _receiverIsSelfCreated = true;
+            }
+            function _bindReceiver() {
                 _receiver.onkeyup = _handle;
                 _receiver.onkeypress = _handle;
                 _receiver.onkeydown = _handle;
                 _receiver.onfocus = _active;
                 _receiver.onblur = _deactive;
-                _receiver.oninput = function(e) {
-                    _receiver.value = null;
+                if (_receiverIsSelfCreated) {
+                    _receiver.oninput = function(e) {
+                        _receiver.value = null;
+                    };
+                }
+            }
+            function _bindContainer() {
+                $container.onmousedown = function(e) {
+                    _active();
+                    e.preventDefault();
                 };
-                $container.appendChild(_receiver);
-                _active();
             }
             function _handle(keyEvent) {
                 if (!_actived) return;
-                var type = keyEvent.type.toLowerCase();
-                var handler = _this["on" + type];
-                if (handler) {
-                    keyEvent.keyHash = key.hash(keyEvent);
-                    keyEvent.isKey = function(keyExpression) {
-                        return keyEvent.keyHash == key.hash(keyExpression);
-                    };
-                    keyEvent[type] = true;
-                    handler(keyEvent);
-                }
+                hotbox.dispatch(keyEvent);
             }
             function _active() {
                 _receiver.select();
@@ -581,6 +673,7 @@ _p[3] = {
                 _actived = false;
                 $container.classList.remove(FOCUS_CLASS);
             }
+            this.handle = _handle;
             this.active = _active;
             this.deactive = _deactive;
         }
