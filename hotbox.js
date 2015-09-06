@@ -99,6 +99,8 @@ _p[1] = {
             // 保存 Dom 解构和父容器
             this.$element = $hotBox;
             this.$container = $container;
+            // 标示是否是输入法状态
+            this.isIME = false;
             // 已定义的状态（string => HotBoxState）
             var _states = {};
             // 主状态（HotBoxState）
@@ -143,7 +145,7 @@ _p[1] = {
                 };
                 e[type] = true;
                 // Boot: keyup and activeKey pressed on IDLE, active main state.
-                if (e.keydown && _this.activeKey && e.isKey(_this.activeKey) && _currentState == IDLE && _mainState) {
+                if (e.keyup && _this.activeKey && e.isKey(_this.activeKey) && _currentState == IDLE && _mainState) {
                     _activeState("main", {
                         x: $container.clientWidth / 2,
                         y: $container.clientHeight / 2
@@ -471,7 +473,7 @@ _p[1] = {
             };
             this.handleKeyEvent = function(e) {
                 var handleResult = null;
-                if (e.keydown) {
+                if (e.keydown || e.keyup && hotBox.isIME) {
                     allButtons.forEach(function(button) {
                         if (button.enable() && e.isKey(button.key)) {
                             if (stateActived || hotBox.hintDeactiveMainState) {
@@ -517,7 +519,13 @@ _p[1] = {
                             }
                             handleResult = "navigate";
                         });
-                        if (e.isKey("space") && selectedButton) {
+                        // 若是由 keyup 触发的，则直接执行选中的按钮
+                        if (e.isKey("space") && e.keyup) {
+                            execute(selectedButton);
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleResult = "execute";
+                        } else if (e.isKey("space") && selectedButton) {
                             press(selectedButton);
                             handleResult = "buttonpress";
                         } else if (pressedButton && pressedButton != selectedButton) {
@@ -533,13 +541,14 @@ _p[1] = {
                             e.stopPropagation();
                             handleResult = "execute";
                         }
-                    } else if (e.isKey("space") && selectedButton) {
-                        execute(selectedButton);
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleResult = "execute";
                     }
                 }
+                /*
+             * Add by zhangbobell 2015.09.06
+             * 增加了下面这一个判断因为 safari 下开启输入法后，所有的 keydown 的 keycode 都为 229，
+             * 只能以 keyup 的 keycode 进行判断
+             * */
+                hotBox.isIME = e.keyCode == 229 && e.keydown;
                 return handleResult;
             };
             function execute(button) {
