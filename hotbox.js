@@ -1,6 +1,6 @@
 /*!
  * ====================================================
- * Hot Box UI - v0.1.0 - 2015-09-06
+ * Hot Box UI - v0.1.0 - 2015-09-08
  * https://github.com/fex-team/hotbox
  * GitHub: https://github.com/fex-team/hotbox.git 
  * Copyright (c) 2015 Baidu FEX; Licensed BSD
