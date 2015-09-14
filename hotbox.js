@@ -1,6 +1,6 @@
 /*!
  * ====================================================
- * Hot Box UI - v1.0.11 - 2015-09-09
+ * Hot Box UI - v1.0.12 - 2015-09-14
  * https://github.com/fex-team/hotbox
  * GitHub: https://github.com/fex-team/hotbox.git 
  * Copyright (c) 2015 Baidu FEX; Licensed BSD
@@ -101,6 +101,14 @@ _p[1] = {
             this.$container = $container;
             // 标示是否是输入法状态
             this.isIME = false;
+            /**
+         * @Desc: 增加一个browser用于判断浏览器类型，方便解决兼容性问题
+         * @Editor: Naixor
+         * @Date: 2015.09.14
+         */
+            this.browser = {
+                sg: /se[\s\S]+metasr/.test(navigator.userAgent.toLowerCase())
+            };
             // 记录位置
             this.position = {};
             // 已定义的状态（string => HotBoxState）
@@ -476,7 +484,26 @@ _p[1] = {
             };
             this.handleKeyEvent = function(e) {
                 var handleResult = null;
-                if (e.keydown || e.keyup && hotBox.isIME) {
+                /**
+             * @Desc: 搜狗浏览器下esc只触发keyup，因此做兼容性处理
+             * @Editor: Naixor
+             * @Date: 2015.09.14
+             */
+                if (hotBox.browser.sg) {
+                    if (e.isKey("esc")) {
+                        if (pressedButton) {
+                            // 若存在已经按下的按钮，则取消操作
+                            if (!e.isKey(pressedButton.key)) {
+                                // the button is not esc
+                                press(null);
+                            }
+                        } else {
+                            hotBox.active("back", hotBox.position);
+                        }
+                        return "back";
+                    }
+                }
+                if (e.keydown || hotBox.isIME && e.keyup) {
                     allButtons.forEach(function(button) {
                         if (button.enable() && e.isKey(button.key)) {
                             if (stateActived || hotBox.hintDeactiveMainState) {
