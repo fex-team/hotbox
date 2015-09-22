@@ -1,6 +1,6 @@
 /*!
  * ====================================================
- * Hot Box UI - v1.0.12 - 2015-09-14
+ * Hot Box UI - v1.0.13 - 2015-09-23
  * https://github.com/fex-team/hotbox
  * GitHub: https://github.com/fex-team/hotbox.git 
  * Copyright (c) 2015 Baidu FEX; Licensed BSD
@@ -109,6 +109,13 @@ _p[1] = {
             this.browser = {
                 sg: /se[\s\S]+metasr/.test(navigator.userAgent.toLowerCase())
             };
+            /*
+        * added by zhangbobell
+        * 2015.09.22
+        * 增加父状态机，以解决在父 FSM 下状态控制的问题，最好的解决办法是增加一个函数队列
+        * 将其中的函数一起执行。//TODO
+        * */
+            this._parentFSM = {};
             // 记录位置
             this.position = {};
             // 已定义的状态（string => HotBoxState）
@@ -217,10 +224,18 @@ _p[1] = {
                     _currentState = newState;
                 }
             }
+            function setParentFSM(fsm) {
+                _this._parentFSM = fsm;
+            }
+            function getParentFSM() {
+                return _this._parentFSM;
+            }
             this.control = _control;
             this.state = _addState;
             this.active = _activeState;
             this.dispatch = _dispatchKey;
+            this.setParentFSM = setParentFSM;
+            this.getParentFSM = getParentFSM;
             this.activeKey = "space";
             this.actionKey = "space";
         }
