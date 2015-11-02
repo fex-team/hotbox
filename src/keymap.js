@@ -31,7 +31,7 @@ define(function(require, exports, module) {
             40: 1
         },
 
-        'Del': 46,
+        'Delete': 46,
 
         'NumLock': 144,
 
