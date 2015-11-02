@@ -1,6 +1,6 @@
 /*!
  * ====================================================
- * Hot Box UI - v1.0.13 - 2015-09-23
+ * Hot Box UI - v1.0.14 - 2015-11-02
  * https://github.com/fex-team/hotbox
  * GitHub: https://github.com/fex-team/hotbox.git 
  * Copyright (c) 2015 Baidu FEX; Licensed BSD
@@ -769,7 +769,7 @@ _p[4] = {
                 39: 1,
                 40: 1
             },
-            Del: 46,
+            Delete: 46,
             NumLock: 144,
             Cmd: 91,
             CmdFF: 224,
