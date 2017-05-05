@@ -76,7 +76,7 @@ define(function(require, exports, module) {
     var n = 9;
     do {
         keymap[n.toString()] = n + 48;
-    } while (--n);
+    } while (n--);
 
     module.exports = keymap;
 });
