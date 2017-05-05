@@ -1,9 +1,9 @@
 /*!
  * ====================================================
- * Hot Box UI - v1.0.14 - 2015-11-02
+ * Hot Box UI - v1.0.15 - 2017-05-05
  * https://github.com/fex-team/hotbox
  * GitHub: https://github.com/fex-team/hotbox.git 
- * Copyright (c) 2015 Baidu FEX; Licensed BSD
+ * Copyright (c) 2017 Baidu FEX; Licensed BSD
  * ====================================================
  */
 
@@ -807,7 +807,7 @@ _p[4] = {
         var n = 9;
         do {
             keymap[n.toString()] = n + 48;
-        } while (--n);
+        } while (n--);
         module.exports = keymap;
     }
 };
