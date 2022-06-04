@@ -2,7 +2,7 @@
 
 var path = require('path');
 
-module.exports = function(grunt) {
+module.exports = function (grunt) {
     'use strict';
 
     // These plugins provide necessary tasks.
@@ -19,14 +19,21 @@ module.exports = function(grunt) {
 
     var banner = '/*!\n' +
         ' * ====================================================\n' +
-        ' * <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
+        ' * <%= pkg.name %> - v<%= pkg.version %> - ' +
         '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
-        '<%= pkg.homepage ? " * " + pkg.homepage + "\\n" : "" %>' +
         ' * GitHub: <%= pkg.repository.url %> \n' +
-        ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
-        ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %>\n' +
+        ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author %>;' +
+        ' Licensed <%= pkg.license %>\n' +
         ' * ====================================================\n' +
-        ' */\n\n';
+        ' */\n\n'
+        + `/*!
+ * ====================================================
+ * Hot Box UI - v1.0.15 - 2017-05-05
+ * https://github.com/fex-team/hotbox
+ * GitHub: https://github.com/fex-team/hotbox.git 
+ * Copyright (c) 2017 Baidu FEX; Licensed BSD
+ * ====================================================
+ */\n\n`;
 
     var expose = '\nuse(\'expose\');\n';
 
@@ -115,6 +122,6 @@ module.exports = function(grunt) {
 
 
     // Build task(s).
-    grunt.registerTask('default', ['dependence', 'concat', 'uglify', 'less', 'autoprefixer']);
+    grunt.registerTask('build', ['dependence', 'concat', 'uglify', 'less:compile', 'autoprefixer']);
 
 };
